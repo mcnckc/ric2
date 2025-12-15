@@ -67,7 +67,7 @@ def plot_pareto_frontier(long_df):
     plot_df = long_df[long_df['Success'] == True].copy()
     plot_df = plot_df[~plot_df['Method'].str.contains('Exact')]
     plot_df = plot_df[~plot_df['Method'].str.contains('CG')] 
-    
+    print(plot_df)
     plt.figure(figsize=(12, 8))
     
     sns.scatterplot(
