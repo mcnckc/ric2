@@ -108,9 +108,11 @@ class NLASS:
 
     def test_ric2(self, stable=False, tau=None):
         mode = "RIC2S" if stable else "RIC2"
-        tau_str = str(tau) if tau else "Auto"
+        tau_str = str(tau) if tau is not None else "Auto"
+        if tau is None:
+            print("WRONG TAU NONE")
         name = f"{mode}_tau{tau_str}"
 
-        func = lambda: RIC2CG.solve(self.A, self.b, stable=stable, tau=tau, rtol=1e-6, maxiter=5000)
+        func = lambda: RIC2CG.solvelr(self.A, self.b, stable=stable, tau=tau, rtol=1e-6, maxiter=5000)
         
         return self._run_solver(func, name, is_custom=True)

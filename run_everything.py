@@ -21,9 +21,9 @@ def ensure_data_exists():
     print("Data missing. Searching SuiteSparse collection...")
     
     
-    results = ssgetpy.search(rowbounds=(1_000, 10_000), isspd=True, limit=1000)
+    results = ssgetpy.search(rowbounds=(1_000, 5_000), isspd=True, limit=1000)
     random.shuffle(results)
-    results = results[:10]
+    results = results[:15]
     if len(results) == 0:
         print("Warning: No matrices found matching criteria!")
         return
@@ -65,7 +65,7 @@ def main():
     
     bm.run_ric2s_sensitivity()
     
-    bm.run_exact_cholesky_ric()
+    #bm.run_exact_cholesky_ric()
 
     print("\n------------------------------------------------")
     print(f"Benchmarks Complete. Data saved in '{bm.RESULTS_FILE}'")

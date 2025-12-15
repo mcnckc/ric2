@@ -51,7 +51,7 @@ def run_baselines():
 def run_ilu_sensitivity():
     def logic(solver, row):
         res = {}
-        for tol in [1e-3, 1e-4, 1e-5, 1e-6]:
+        for tol in [1e-4, 1e-5, 1e-6]:
             res.update(solver.test_cg_ilu(drop_tol=tol))
         return res
     _load_and_update("ILU_Sensitivity", logic)
@@ -59,7 +59,7 @@ def run_ilu_sensitivity():
 def run_ric2s_sensitivity():
     def logic(solver, row):
         res = {}
-        for t in [0.05, 0.01, 0.001]:
+        for t in [0.01, 0.001, 1e-4]:
             res.update(solver.test_ric2(stable=True, tau=t))
         return res
     _load_and_update("RIC2S_Sensitivity", logic)
