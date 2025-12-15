@@ -21,9 +21,9 @@ def ensure_data_exists():
     print("Data missing. Searching SuiteSparse collection...")
     
     
-    results = ssgetpy.search(rowbounds=(1_000, 5_000), isspd=True, limit=1000)
+    results = ssgetpy.search(rowbounds=(1_000, 15_000), isspd=True, limit=100, dtype='real')
     random.shuffle(results)
-    results = results[:15]
+    results = results[:10]
     if len(results) == 0:
         print("Warning: No matrices found matching criteria!")
         return
