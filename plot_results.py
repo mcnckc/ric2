@@ -69,7 +69,7 @@ def plot_pareto_frontier(long_df):
     plot_df = plot_df[~plot_df['Method'].str.contains('CG')] 
     
     plot_df = plot_df.drop(columns=['Success', 'Matrix'])
-    plot_df.groupby('Method').mean()
+    plot_df = plot_df.groupby('Method').mean()
 
     plt.figure(figsize=(12, 8))
     
