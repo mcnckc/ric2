@@ -3,7 +3,8 @@ import numpy as np
 from scipy.sparse.linalg import spsolve_triangular
 
 class RIC2CG:
-    def solve(A, b, stable=False, tau=None, rtol=1e-6, maxiter=5000):
+    @staticmethod
+    def solve(A, b, x0=None, stable=False, tau=None, rtol=1e-6, maxiter=5000):
         """
         Solve Ax=b using RIC2 preconditioner
         A is scipy sparse SPD matrix
@@ -34,13 +35,53 @@ class RIC2CG:
         def save_x(x):
             residuals.append(np.linalg.norm((A @ x - b) / D) / norm_b)
 
-        xf, n_iters = sp.linalg.cg(A, b, M=sp.linalg.LinearOperator(shape=(n, n), matvec=solveUTU, dtype=np.double), 
-                     rtol=rtol, maxiter=maxiter, callback=save_x)
+        xf, n_iters = sp.linalg.cg(A, b, x0=x0, M=sp.linalg.LinearOperator(shape=(n, n), matvec=solveUTU, dtype=np.double), 
+                     rtol=1e-9, maxiter=maxiter, callback=save_x)
 
         return xf * D, residuals, 2 * U.nnz
         
-        
+    @staticmethod
+    def solvelr(A, b, x0=None, stable=False, tau=None, rtol=1e-6, maxiter=5000):
+        """
+        Solve Ax=b using RIC2 preconditioner
+        A is scipy sparse SPD matrix
+        b is numpy vector
+        stable=True means to use RIC2S version (more stable, less fill-in, faster 
+        to compute decomposition. May need more CG iterations)
+        tau is a RIC2 hyperparameter
+        RETURNS:
+        x - solution vector(numpy array)
+        residuals - norms ||Ax-b||/||b|| after each iteration
+        nnz - number of nonzeros in preconditioner
+        """
+        n = A.shape[0]
+        D = 1 / np.sqrt(A.diagonal())
+        A, b = sp.diags(D) @ A.copy() @ sp.diags(D), D * b
 
+        if stable:
+            U, R = RIC2CG._RIC2S(A, tau)
+        else:
+            U, R = RIC2CG._RIC2(A, tau)
+
+        def Ax(x):
+            y = spsolve_triangular(U, x, lower=False)
+            y = A @ y
+            return spsolve_triangular(U.T, y, lower=True)
+        Aop = sp.linalg.LinearOperator(shape=(n, n), matvec=Ax, dtype=np.double)
+        b = spsolve_triangular(U.T, b, lower=True)
+
+        residuals = []
+        
+        norm_b = np.linalg.norm((U.T @ b) / D)
+        def save_x(x):
+            residuals.append(np.linalg.norm((U.T @ (Ax(x) - b)) / D) / norm_b)
+
+        xf, n_iters = sp.linalg.cg(Aop, b, x0=x0, 
+                     rtol=1e-9, maxiter=maxiter, callback=save_x)
+
+        return spsolve_triangular(U, xf, lower=False) * D, residuals, 2 * U.nnz
+    
+    @staticmethod
     def _RIC2(A, tau=None):
         """
         Calculate sparse U, R factors in U^TU+U^TR+R^TU decomposition of sparse symmetric positive definite
@@ -52,6 +93,7 @@ class RIC2CG:
             tau = 0.1
         A = A.tocsr()
         n = A.shape[0]
+        # offtop : we can try to use the faster data formats : else it would be just oyhton loops
         U, Y, R, Z = sp.csc_array((n, n)), sp.csc_array((n, n)), sp.csc_array((n, n)), sp.csc_array((n, n))
         for i in range(0, n):
             gamma_k = A[i, i]
@@ -87,7 +129,7 @@ class RIC2CG:
                 Z[i, i + 1:] = zk
             
         return U, R
-    
+    @staticmethod
     def _RIC2S(A, tau=None):
         """
         Calculate sparse U, R factors in U^TU+U^TR+R^TU+S decomposition of sparse symmetric positive definite
@@ -121,6 +163,7 @@ class RIC2CG:
                 vk = A[i:i+1, i + 1:]
                 if i > 0:
                     vk -= (uk.T @ Yk + uk.T @ Zk + rk.T @ Yk)
+                # we loop is slow???     
                 dz = np.abs(vk.copy()).multiply(sp.csr_array(1 / np.sqrt(d[None, 1:])))
                 for j, dzj in zip(dz.indices, dz.data):
                     if dzj <= tau ** 2:
