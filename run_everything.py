@@ -55,7 +55,7 @@ def ensure_data_exists():
 def main():
     print("--- PROJECT START ---")
     
-    #ensure_data_exists()
+    ensure_data_exists()
 
     bm.init_results_file()
     
