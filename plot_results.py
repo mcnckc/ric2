@@ -43,7 +43,7 @@ def load_and_preprocess():
             else:
                 fill_factor = p_nnz / base_nnz
                 
-            if not pd.isna(iter_val):
+            if not pd.isna(iter_val) and iter_val < 4000:
                 long_data.append({
                     'Matrix': row['name'],
                     'Method': m,
@@ -67,7 +67,10 @@ def plot_pareto_frontier(long_df):
     plot_df = long_df[long_df['Success'] == True].copy()
     plot_df = plot_df[~plot_df['Method'].str.contains('Exact')]
     plot_df = plot_df[~plot_df['Method'].str.contains('CG')] 
-    print(plot_df)
+    
+    plot_df = plot_df.drop(columns=['Success', 'Matrix'])
+    plot_df.groupby('Method').mean()
+
     plt.figure(figsize=(12, 8))
     
     sns.scatterplot(
