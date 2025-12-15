@@ -21,7 +21,7 @@ def ensure_data_exists():
     print("Data missing. Searching SuiteSparse collection...")
     
     
-    results = ssgetpy.search(rowbounds=(1_000, 15_000), isspd=True, limit=100, dtype='real')
+    results = ssgetpy.search(rowbounds=(2_000, 5_000), isspd=True, limit=100, dtype='real', kind='structural_problem')
     random.shuffle(results)
     results = results[:10]
     if len(results) == 0:

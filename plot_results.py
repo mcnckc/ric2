@@ -67,9 +67,6 @@ def plot_pareto_frontier(long_df):
     plot_df = long_df[long_df['Success'] == True].copy()
     plot_df = plot_df[~plot_df['Method'].str.contains('Exact')]
     plot_df = plot_df[~plot_df['Method'].str.contains('CG')] 
-    
-    plot_df = plot_df.drop(columns=['Success', 'Matrix'])
-    plot_df = plot_df.groupby('Method').mean()
 
     plt.figure(figsize=(12, 8))
     
@@ -93,6 +90,33 @@ def plot_pareto_frontier(long_df):
     
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/plot1_pareto_frontier.png")
+    plt.close()
+
+    plot_df = plot_df.drop(columns=['Success', 'Matrix'])
+    plot_df = plot_df.groupby('Method').mean()
+    
+    plt.figure(figsize=(12, 8))
+    
+    sns.scatterplot(
+        data=plot_df, 
+        x='Fill_Factor', 
+        y='Iterations', 
+        hue='Method',
+        style='Method',
+        s=100, 
+        alpha=0.8
+    )
+    
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.title("Pareto Frontier: Memory vs. Convergence\n(Lower Left is Better)", fontsize=14)
+    plt.xlabel("Fill-in Factor (Preconditioner NNZ / A NNZ)", fontsize=12)
+    plt.ylabel("Iterations to Convergence (Log Scale)", fontsize=12)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.grid(True, which="both", ls="--", alpha=0.5)
+    
+    plt.tight_layout()
+    plt.savefig(f"{OUTPUT_DIR}/plot1_pareto_frontier_mean.png")
     plt.close()
 
 def plot_robustness(long_df):
